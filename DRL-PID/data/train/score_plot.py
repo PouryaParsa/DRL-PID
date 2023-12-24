@@ -1,37 +1,30 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-def plot_learning_curve(x, scores, figure_file,average_time=100):
-    running_avg = np.zeros(len(scores))
-    for i in range(len(running_avg)):
-        running_avg[i] = np.mean(scores[max(0, i-average_time):(i+1)])
-    plt.plot(x, running_avg)
+def plot_learning_curve(x, scores, figure_file, average_time=100):
+    running_avg = np.convolve(scores, np.ones(average_time)/average_time, mode='valid')
+    plt.plot(x[:len(running_avg)], running_avg)
+    plt.xlabel('Episode')
+    plt.ylabel('Average Score')
+    plt.title('Learning Curve')
     plt.savefig(figure_file)
+    plt.show()
 
+def plot_data(file_name, figure_file, average_time=100):
+    scores = []
+    with open(file_name) as f:
+        file_content = f.readlines()
+    
+    for line in file_content:
+        scores.append(list(map(float, line.strip('[]').split(", "))))
+    
+    scores = np.array(scores).flatten()
 
-figure_file = 'score_plot.png'
-file_name = 'score_data.txt'
+    x = np.arange(len(scores))
+    plot_learning_curve(x, scores, figure_file, average_time)
 
-def plot_data(file_name,figure_file,average_time=100):
-	scores = []
-	with open(file_name) as f :
-		file = f.readlines()
-	for index, x in enumerate(file):
-		x = x.strip()
-		x = x.strip('[]')
-		x = x.split(", ")
-		scores.append(x)
-	scores = np.array(scores)
-	scores = scores.astype(float)
-	y = np.zeros((scores.shape[0])*scores.shape[1])
-	for i in range(0, scores.shape[0]):
-	    for j in range(scores.shape[1]):
-	        y[(i)*50+j] = scores[i][j] 
+if __name__ == "__main__":
+    figure_file = 'score_plot.png'
+    file_name = 'score_data.txt'
+    plot_data(file_name, figure_file, 1)
 
-	x = [i for i in range(len(y))]
-	plot_learning_curve(x,y,figure_file,average_time)
-
-plot_data(file_name,figure_file,1)
-
-# print(b)
